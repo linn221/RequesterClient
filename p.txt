@@ -1,6 +1,4 @@
 Generate a fully functional frontend for the Bug Hunting Record & Analysis app using the provided OpenAPI YAML. 
-- Implement all CRUD operations, listings, and detail views per the spec.
-- Use snake_case for all requests, query parameters, and JSON responses.
+- Implement all CRUD operations, listings, and detail views per the spec. I have also added comments in the yaml file.
 - Handle errors as plain text and show loading states.
-- Integrate session via GET /start_session?secret=...
 - Follow all tech stack, UI, UX, and code guidelines from context.md.
