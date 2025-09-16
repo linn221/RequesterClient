@@ -15,6 +15,20 @@
           <div class="card-body">
             <form @submit.prevent="importHAR">
               <div class="mb-3">
+                <label for="program_id" class="form-label">Program *</label>
+                <select class="form-select" id="program_id" v-model="selectedProgramId" required>
+                  <option value="">Select a program</option>
+                  <option v-for="program in programs" :key="program.id" :value="program.id">
+                    {{ program.name }}
+                  </option>
+                </select>
+                <div class="form-text">
+                  Select the program to associate this HAR import with. 
+                  <router-link to="/programs/create">Create a new program</router-link> if none are available.
+                </div>
+              </div>
+
+              <div class="mb-3">
                 <label for="harFile" class="form-label">HAR File *</label>
                 <input 
                   type="file" 
@@ -44,7 +58,7 @@
 
               <div class="d-flex justify-content-end gap-2">
                 <button type="button" @click="clearFile" class="btn btn-outline-secondary">Clear</button>
-                <button type="submit" class="btn btn-primary" :disabled="!selectedFile">
+                <button type="submit" class="btn btn-primary" :disabled="!selectedFile || !selectedProgramId">
                   Import HAR File
                 </button>
               </div>
@@ -151,15 +165,26 @@ export default {
   data() {
     return {
       selectedFile: null,
+      selectedProgramId: '',
       fileError: null,
-      recentJobs: []
+      recentJobs: [],
+      programs: []
     }
   },
   async mounted() {
+    await this.loadPrograms()
     await this.loadRecentJobs()
   },
   methods: {
     formatDate,
+    async loadPrograms() {
+      try {
+        const result = await this.$store.dispatch('fetchPrograms')
+        this.programs = result || []
+      } catch (error) {
+        console.error('Error loading programs:', error)
+      }
+    },
     async loadRecentJobs() {
       try {
         await this.$store.dispatch('fetchJobs')
@@ -209,8 +234,24 @@ export default {
         return
       }
 
+      if (!this.selectedProgramId) {
+        this.fileError = 'Please select a program first'
+        return
+      }
+
       try {
-        const jobId = await this.$store.dispatch('importHAR', this.selectedFile)
+        const formData = new FormData()
+        formData.append('file', this.selectedFile)
+        formData.append('program_id', this.selectedProgramId)
+
+        const result = await this.$store.dispatch('makeApiCall', {
+          endpoint: '/import_har',
+          options: {
+            method: 'POST',
+            headers: {}, // Remove Content-Type to let browser set it for FormData
+            body: formData
+          }
+        })
         
         // Show success message and redirect to jobs page
         this.$store.commit('SET_ERROR', null)
@@ -218,7 +259,7 @@ export default {
         await this.loadRecentJobs() // Refresh recent jobs
         
         // Optionally redirect to jobs page
-        this.$router.push(`/jobs?highlight=${jobId}`)
+        this.$router.push(`/jobs?highlight=${result.data}`)
       } catch (error) {
         console.error('Error importing HAR:', error)
         this.fileError = error.message || 'Failed to import HAR file'
@@ -226,6 +267,7 @@ export default {
     },
     clearFile() {
       this.selectedFile = null
+      this.selectedProgramId = ''
       this.fileError = null
       if (this.$refs.fileInput) {
         this.$refs.fileInput.value = ''

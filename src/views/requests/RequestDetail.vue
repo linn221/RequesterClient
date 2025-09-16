@@ -79,7 +79,11 @@
               <h6 class="mb-0">Request Headers</h6>
             </div>
             <div class="card-body">
-              <pre v-if="request.request_headers" class="mb-0">{{ request.request_headers }}</pre>
+              <div v-if="request.request_headers" class="mb-0">
+                <div v-for="header in parseHeaders(request.request_headers)" :key="header.name" class="mb-1">
+                  <strong>{{ header.name }}:</strong> {{ header.value }}
+                </div>
+              </div>
               <p v-else class="text-muted mb-0">No request headers</p>
             </div>
           </div>
@@ -92,7 +96,11 @@
               <h6 class="mb-0">Response Headers</h6>
             </div>
             <div class="card-body">
-              <pre v-if="request.response_headers" class="mb-0">{{ formatHeaders(request.response_headers) }}</pre>
+              <div v-if="request.response_headers" class="mb-0">
+                <div v-for="header in parseHeaders(request.response_headers)" :key="header.name" class="mb-1">
+                  <strong>{{ header.name }}:</strong> {{ header.value }}
+                </div>
+              </div>
               <p v-else class="text-muted mb-0">No response headers</p>
             </div>
           </div>
@@ -179,20 +187,11 @@
             </form>
           </div>
 
-          <div class="list-group list-group-flush">
-            <div v-for="note in request.notes" :key="note.id" class="list-group-item px-0">
-              <div class="d-flex justify-content-between align-items-start">
-                <div class="flex-grow-1">
-                  <p class="mb-1">{{ note.value }}</p>
-                  <small class="text-muted">{{ formatDate(note.created_at) }}</small>
-                </div>
-                <div class="btn-group btn-group-sm">
-                  <router-link :to="`/notes/${note.id}`" class="btn btn-outline-primary btn-sm">View</router-link>
-                  <button @click="deleteNote(note)" class="btn btn-outline-danger btn-sm">Delete</button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <NotesListComponent 
+            :notes="request.notes" 
+            @note-updated="loadRequest"
+            @note-deleted="loadRequest"
+          />
         </div>
       </div>
 
@@ -259,7 +258,12 @@
               </div>
             </form>
           </div>
-          <p class="text-muted text-center" v-if="!showAddNote">No notes yet.</p>
+          <NotesListComponent 
+            v-if="!showAddNote"
+            :notes="request.notes || []" 
+            @note-updated="loadRequest"
+            @note-deleted="loadRequest"
+          />
         </div>
       </div>
 
@@ -301,9 +305,13 @@
 
 <script>
 import { formatDate } from '../../config/api'
+import NotesListComponent from '../../components/NotesList.vue'
 
 export default {
   name: 'RequestDetail',
+  components: {
+    NotesListComponent
+  },
   props: ['id'],
   data() {
     return {
@@ -343,16 +351,6 @@ export default {
         await this.loadRequest() // Refresh to show new note
       } catch (error) {
         console.error('Error adding note:', error)
-      }
-    },
-    async deleteNote(note) {
-      if (confirm('Are you sure you want to delete this note?')) {
-        try {
-          await this.$store.dispatch('deleteNote', note.id)
-          await this.loadRequest() // Refresh to remove deleted note
-        } catch (error) {
-          console.error('Error deleting note:', error)
-        }
       }
     },
     async uploadAttachment() {
@@ -400,6 +398,46 @@ export default {
       if (statusCode >= 400 && statusCode < 500) return 'bg-warning'
       if (statusCode >= 500) return 'bg-danger'
       return 'bg-secondary'
+    },
+    parseHeaders(headers) {
+      if (!headers) return []
+      
+      try {
+        // If it's already an object (parsed JSON)
+        if (typeof headers === 'object' && headers !== null) {
+          return Object.entries(headers).map(([name, value]) => ({
+            name,
+            value: Array.isArray(value) ? value.join(', ') : String(value)
+          }))
+        }
+        
+        // If it's a string, try to parse as JSON first
+        if (typeof headers === 'string') {
+          try {
+            const parsed = JSON.parse(headers)
+            return Object.entries(parsed).map(([name, value]) => ({
+              name,
+              value: Array.isArray(value) ? value.join(', ') : String(value)
+            }))
+          } catch {
+            // If JSON parsing fails, try to parse as HTTP header format
+            return headers
+              .split('\n')
+              .filter(line => line.trim() && line.includes(':'))
+              .map(line => {
+                const [name, ...valueParts] = line.split(':')
+                return {
+                  name: name.trim(),
+                  value: valueParts.join(':').trim()
+                }
+              })
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing headers:', error)
+      }
+      
+      return []
     },
     formatHeaders(headers) {
       if (typeof headers === 'string') return headers

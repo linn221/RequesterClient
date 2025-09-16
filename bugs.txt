@@ -1,0 +1,6 @@
+at /import-har, it is saying program_id is required. In import form, add a select input for program_id, there is GET /programs
+on Request listing page, I do not want horizontal scroll and a table, but a Card layout, which should nicely fill all the information. and if the url is long, add see more link to view the full url. I don't want to use select box for choosing Endpoint in filter Requests, but to use text suggestion pop ups, also able to use the arrow keys and enter to choose.
+on endpoint details page, show the related requests via /requests?endpoint_id=. use the same component as listing requests.
+on program details page, show the related endpoints via /endpoints?program_id=. use the same component as listing endpoints.
+When notes are displayed, add Edit button, use the PATCH method. I hope you are using one components for all view of listing notes, update the component, and also show the updated date as well.
+on Request Details page, Headers should be displayed like "Server: Nginx", one line per header. You might have to parse the response, or not. Smartly use the openapi spec

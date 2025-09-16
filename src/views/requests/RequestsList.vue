@@ -30,12 +30,14 @@
 
             <div class="col-md-6 col-lg-3 mb-3">
               <label for="endpoint_id" class="form-label">Endpoint</label>
-              <select class="form-select" id="endpoint_id" v-model="filters.endpoint_id">
-                <option value="">All Endpoints</option>
-                <option v-for="endpoint in endpoints" :key="endpoint.id" :value="endpoint.id">
-                  {{ endpoint.method }} {{ endpoint.uri }}
-                </option>
-              </select>
+              <AutocompleteInput
+                v-model="filters.endpoint_id"
+                :options="endpointOptions"
+                placeholder="Search endpoints..."
+                label-key="label"
+                value-key="value"
+                subtext-key="subtext"
+              />
             </div>
 
             <div class="col-md-6 col-lg-3 mb-3">
@@ -114,76 +116,11 @@
           <router-link to="/import-har" class="btn btn-primary">Import HAR file to get started</router-link>
         </div>
 
-        <div v-else class="table-responsive">
-          <table class="table table-hover table-sm">
-            <thead>
-              <tr>
-                <th>Method</th>
-                <th>URL</th>
-                <th>Status</th>
-                <th>Program</th>
-                <th>Endpoint</th>
-                <th>Sequence</th>
-                <th>Search Results</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="request in requests" :key="request.id">
-                <td>
-                  <span class="badge" :class="getMethodBadgeClass(request.method)">
-                    {{ request.method }}
-                  </span>
-                </td>
-                <td>
-                  <router-link :to="`/requests/${request.id}`" class="text-decoration-none">
-                    <span class="text-muted">{{ request.domain }}</span><span class="fw-bold">{{ getPath(request.url) }}</span>
-                  </router-link>
-                </td>
-                <td>
-                  <span class="badge" :class="getStatusBadgeClass(request.status_code)">
-                    {{ request.status_code }}
-                  </span>
-                </td>
-                <td>
-                  <router-link 
-                    v-if="request.program_id" 
-                    :to="`/programs/${request.program_id}`" 
-                    class="text-decoration-none text-muted"
-                  >
-                    {{ request.program_name }}
-                  </router-link>
-                  <span v-else class="text-muted">-</span>
-                </td>
-                <td>
-                  <router-link 
-                    v-if="request.endpoint_id" 
-                    :to="`/endpoints/${request.endpoint_id}`" 
-                    class="text-decoration-none text-muted"
-                  >
-                    {{ request.endpoint_name }}
-                  </router-link>
-                  <span v-else class="text-muted">-</span>
-                </td>
-                <td class="text-muted">{{ request.sequence_number }}</td>
-                <td>
-                  <div v-if="request.search_results && request.search_results.length > 0">
-                    <small v-for="(result, index) in request.search_results.slice(0, 2)" :key="index" class="d-block text-truncate" style="max-width: 200px;">
-                      {{ result }}
-                    </small>
-                    <small v-if="request.search_results.length > 2" class="text-muted">
-                      +{{ request.search_results.length - 2 }} more
-                    </small>
-                  </div>
-                  <span v-else class="text-muted">-</span>
-                </td>
-                <td>
-                  <router-link :to="`/requests/${request.id}`" class="btn btn-outline-primary btn-sm">View</router-link>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <RequestsCardList 
+          v-else
+          :requests="requests"
+          empty-message="No requests found. Import HAR file to get started"
+        />
       </div>
     </div>
   </div>
@@ -191,9 +128,15 @@
 
 <script>
 import { mapGetters } from 'vuex'
+import AutocompleteInput from '../../components/AutocompleteInput.vue'
+import RequestsCardList from '../../components/RequestsCardList.vue'
 
 export default {
   name: 'RequestsList',
+  components: {
+    AutocompleteInput,
+    RequestsCardList
+  },
   data() {
     return {
       showFilters: false,
@@ -208,7 +151,14 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(['requests', 'programs', 'endpoints', 'jobs'])
+    ...mapGetters(['requests', 'programs', 'endpoints', 'jobs']),
+    endpointOptions() {
+      return this.endpoints.map(endpoint => ({
+        label: `${endpoint.method} ${endpoint.uri}`,
+        value: endpoint.id,
+        subtext: `${endpoint.domain} - ${endpoint.program_name}`
+      }))
+    }
   },
   async mounted() {
     await this.loadDependencies()
@@ -253,32 +203,6 @@ export default {
     },
     toggleFilters() {
       this.showFilters = !this.showFilters
-    },
-    getMethodBadgeClass(method) {
-      const classes = {
-        'GET': 'bg-success',
-        'POST': 'bg-primary',
-        'PUT': 'bg-warning',
-        'PATCH': 'bg-info',
-        'DELETE': 'bg-danger',
-        'HEAD': 'bg-secondary',
-        'OPTIONS': 'bg-dark'
-      }
-      return classes[method] || 'bg-secondary'
-    },
-    getStatusBadgeClass(statusCode) {
-      if (statusCode >= 200 && statusCode < 300) return 'bg-success'
-      if (statusCode >= 300 && statusCode < 400) return 'bg-info'
-      if (statusCode >= 400 && statusCode < 500) return 'bg-warning'
-      if (statusCode >= 500) return 'bg-danger'
-      return 'bg-secondary'
-    },
-    getPath(url) {
-      try {
-        return new URL(url).pathname + new URL(url).search
-      } catch {
-        return url
-      }
     }
   }
 }

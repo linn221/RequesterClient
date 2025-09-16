@@ -76,20 +76,11 @@
             </form>
           </div>
 
-          <div class="list-group list-group-flush">
-            <div v-for="note in endpoint.notes" :key="note.id" class="list-group-item px-0">
-              <div class="d-flex justify-content-between align-items-start">
-                <div class="flex-grow-1">
-                  <p class="mb-1">{{ note.value }}</p>
-                  <small class="text-muted">{{ formatDate(note.created_at) }}</small>
-                </div>
-                <div class="btn-group btn-group-sm">
-                  <router-link :to="`/notes/${note.id}`" class="btn btn-outline-primary btn-sm">View</router-link>
-                  <button @click="deleteNote(note)" class="btn btn-outline-danger btn-sm">Delete</button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <NotesListComponent 
+            :notes="endpoint.notes" 
+            @note-updated="loadEndpoint"
+            @note-deleted="loadEndpoint"
+          />
         </div>
       </div>
 
@@ -156,7 +147,12 @@
               </div>
             </form>
           </div>
-          <p class="text-muted text-center" v-if="!showAddNote">No notes yet.</p>
+          <NotesListComponent 
+            v-if="!showAddNote"
+            :notes="endpoint.notes || []" 
+            @note-updated="loadEndpoint"
+            @note-deleted="loadEndpoint"
+          />
         </div>
       </div>
 
@@ -186,6 +182,23 @@
           <p class="text-muted text-center" v-if="!showAddAttachment">No attachments yet.</p>
         </div>
       </div>
+
+      <!-- Related Requests Section -->
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h6 class="mb-0">Related Requests</h6>
+          <button @click="refreshRelatedRequests" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+          </button>
+        </div>
+        <div class="card-body">
+          <RequestsCardList 
+            :requests="relatedRequests"
+            :show-related-links="false"
+            empty-message="No requests found for this endpoint."
+          />
+        </div>
+      </div>
     </div>
 
     <div v-else class="text-center">
@@ -198,13 +211,20 @@
 
 <script>
 import { formatDate } from '../../config/api'
+import NotesListComponent from '../../components/NotesList.vue'
+import RequestsCardList from '../../components/RequestsCardList.vue'
 
 export default {
   name: 'EndpointDetail',
+  components: {
+    NotesListComponent,
+    RequestsCardList
+  },
   props: ['id'],
   data() {
     return {
       endpoint: null,
+      relatedRequests: [],
       showAddNote: false,
       showAddAttachment: false,
       newNote: ''
@@ -212,6 +232,7 @@ export default {
   },
   async mounted() {
     await this.loadEndpoint()
+    await this.loadRelatedRequests()
   },
   methods: {
     formatDate,
@@ -240,16 +261,6 @@ export default {
         await this.loadEndpoint() // Refresh to show new note
       } catch (error) {
         console.error('Error adding note:', error)
-      }
-    },
-    async deleteNote(note) {
-      if (confirm('Are you sure you want to delete this note?')) {
-        try {
-          await this.$store.dispatch('deleteNote', note.id)
-          await this.loadEndpoint() // Refresh to remove deleted note
-        } catch (error) {
-          console.error('Error deleting note:', error)
-        }
       }
     },
     async uploadAttachment() {
@@ -290,6 +301,19 @@ export default {
         'OPTIONS': 'bg-dark'
       }
       return classes[method] || 'bg-secondary'
+    },
+    async loadRelatedRequests() {
+      try {
+        const result = await this.$store.dispatch('fetchRequests', {
+          endpoint_id: this.id
+        })
+        this.relatedRequests = result || []
+      } catch (error) {
+        console.error('Error loading related requests:', error)
+      }
+    },
+    async refreshRelatedRequests() {
+      await this.loadRelatedRequests()
     }
   }
 }

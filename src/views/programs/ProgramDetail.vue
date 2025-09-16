@@ -63,20 +63,11 @@
             </form>
           </div>
 
-          <div class="list-group list-group-flush">
-            <div v-for="note in program.notes" :key="note.id" class="list-group-item px-0">
-              <div class="d-flex justify-content-between align-items-start">
-                <div class="flex-grow-1">
-                  <p class="mb-1">{{ note.value }}</p>
-                  <small class="text-muted">{{ formatDate(note.created_at) }}</small>
-                </div>
-                <div class="btn-group btn-group-sm">
-                  <router-link :to="`/notes/${note.id}`" class="btn btn-outline-primary btn-sm">View</router-link>
-                  <button @click="deleteNote(note)" class="btn btn-outline-danger btn-sm">Delete</button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <NotesListComponent 
+            :notes="program.notes" 
+            @note-updated="loadProgram"
+            @note-deleted="loadProgram"
+          />
         </div>
       </div>
 
@@ -143,7 +134,12 @@
               </div>
             </form>
           </div>
-          <p class="text-muted text-center" v-if="!showAddNote">No notes yet.</p>
+          <NotesListComponent 
+            v-if="!showAddNote"
+            :notes="program.notes || []" 
+            @note-updated="loadProgram"
+            @note-deleted="loadProgram"
+          />
         </div>
       </div>
 
@@ -173,6 +169,23 @@
           <p class="text-muted text-center" v-if="!showAddAttachment">No attachments yet.</p>
         </div>
       </div>
+
+      <!-- Related Endpoints Section -->
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h6 class="mb-0">Related Endpoints</h6>
+          <button @click="refreshRelatedEndpoints" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-arrow-clockwise"></i> Refresh
+          </button>
+        </div>
+        <div class="card-body">
+          <EndpointsCardList 
+            :endpoints="relatedEndpoints"
+            :show-program-link="false"
+            empty-message="No endpoints found for this program."
+          />
+        </div>
+      </div>
     </div>
 
     <div v-else class="text-center">
@@ -185,13 +198,20 @@
 
 <script>
 import { formatDate, apiRequest } from '../../config/api'
+import NotesListComponent from '../../components/NotesList.vue'
+import EndpointsCardList from '../../components/EndpointsCardList.vue'
 
 export default {
   name: 'ProgramDetail',
+  components: {
+    NotesListComponent,
+    EndpointsCardList
+  },
   props: ['id'],
   data() {
     return {
       program: null,
+      relatedEndpoints: [],
       showAddNote: false,
       showAddAttachment: false,
       newNote: ''
@@ -199,6 +219,7 @@ export default {
   },
   async mounted() {
     await this.loadProgram()
+    await this.loadRelatedEndpoints()
   },
   methods: {
     formatDate,
@@ -229,16 +250,6 @@ export default {
         console.error('Error adding note:', error)
       }
     },
-    async deleteNote(note) {
-      if (confirm('Are you sure you want to delete this note?')) {
-        try {
-          await this.$store.dispatch('deleteNote', note.id)
-          await this.loadProgram() // Refresh to remove deleted note
-        } catch (error) {
-          console.error('Error deleting note:', error)
-        }
-      }
-    },
     async uploadAttachment() {
       const file = this.$refs.fileInput.files[0]
       if (!file) return
@@ -265,6 +276,20 @@ export default {
           console.error('Error deleting attachment:', error)
         }
       }
+    },
+    async loadRelatedEndpoints() {
+      try {
+        const result = await this.$store.dispatch('fetchEndpoints')
+        // Filter endpoints for this program
+        this.relatedEndpoints = (result || []).filter(endpoint => 
+          endpoint.program_id === parseInt(this.id)
+        )
+      } catch (error) {
+        console.error('Error loading related endpoints:', error)
+      }
+    },
+    async refreshRelatedEndpoints() {
+      await this.loadRelatedEndpoints()
     }
   }
 }
