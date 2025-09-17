@@ -78,7 +78,7 @@
             <div class="card-header">
               <h6 class="mb-0">Request Headers</h6>
             </div>
-            <div class="card-body">
+            <div class="card-body clickable-content" @click="openModal('Request Headers', request.request_headers, 'json')" style="cursor: pointer;">
               <div v-if="request.request_headers" class="mb-0">
                 <div v-for="header in parseHeaders(request.request_headers)" :key="header.name" class="mb-1">
                   <strong>{{ header.name }}:</strong> {{ header.value }}
@@ -95,7 +95,7 @@
             <div class="card-header">
               <h6 class="mb-0">Response Headers</h6>
             </div>
-            <div class="card-body">
+            <div class="card-body clickable-content" @click="openModal('Response Headers', request.response_headers, 'json')" style="cursor: pointer;">
               <div v-if="request.response_headers" class="mb-0">
                 <div v-for="header in parseHeaders(request.response_headers)" :key="header.name" class="mb-1">
                   <strong>{{ header.name }}:</strong> {{ header.value }}
@@ -114,7 +114,7 @@
             <div class="card-header">
               <h6 class="mb-0">Request Body</h6>
             </div>
-            <div class="card-body">
+            <div class="card-body clickable-content" @click="openModal('Request Body', request.request_body, 'json')" style="cursor: pointer;">
               <pre v-if="request.request_body" class="mb-0">{{ formatBody(request.request_body) }}</pre>
               <p v-else class="text-muted mb-0">No request body</p>
             </div>
@@ -127,7 +127,7 @@
             <div class="card-header">
               <h6 class="mb-0">Response Body</h6>
             </div>
-            <div class="card-body">
+            <div class="card-body clickable-content" @click="openModal('Response Body', request.response_body, 'json')" style="cursor: pointer;">
               <pre v-if="request.response_body" class="mb-0">{{ formatBody(request.response_body) }}</pre>
               <p v-else class="text-muted mb-0">No response body</p>
             </div>
@@ -293,6 +293,23 @@
           <p class="text-muted text-center" v-if="!showAddAttachment">No attachments yet.</p>
         </div>
       </div>
+
+      <!-- Related Requests Section -->
+      <div class="card mb-4" v-if="request && request.endpoint_id">
+        <div class="card-header">
+          <h6 class="mb-0">Related Requests</h6>
+        </div>
+        <div class="card-body">
+          <RequestsCardList 
+            :requests="relatedRequests" 
+            :loading="loadingRelatedRequests"
+            :show-filters="false"
+          />
+          <div v-if="!loadingRelatedRequests && relatedRequests.length === 0" class="text-center text-muted py-4">
+            No related requests found for this endpoint.
+          </div>
+        </div>
+      </div>
     </div>
 
     <div v-else class="text-center">
@@ -300,17 +317,30 @@
         <span class="visually-hidden">Loading...</span>
       </div>
     </div>
+    
+    <!-- Content Modal -->
+    <ContentModal
+      :show="showModal"
+      :title="modalTitle"
+      :content="modalContent"
+      :language="modalLanguage"
+      @close="closeModal"
+    />
   </div>
 </template>
 
 <script>
 import { formatDate } from '../../config/api'
 import NotesListComponent from '../../components/NotesList.vue'
+import ContentModal from '../../components/ContentModal.vue'
+import RequestsCardList from '../../components/RequestsCardList.vue'
 
 export default {
   name: 'RequestDetail',
   components: {
-    NotesListComponent
+    NotesListComponent,
+    ContentModal,
+    RequestsCardList
   },
   props: ['id'],
   data() {
@@ -318,11 +348,27 @@ export default {
       request: null,
       showAddNote: false,
       showAddAttachment: false,
-      newNote: ''
+      newNote: '',
+      showModal: false,
+      modalTitle: '',
+      modalContent: '',
+      modalLanguage: 'json',
+      relatedRequests: [],
+      loadingRelatedRequests: false
     }
   },
   async mounted() {
     await this.loadRequest()
+  },
+  watch: {
+    'request.endpoint_id': {
+      handler(newEndpointId) {
+        if (newEndpointId) {
+          this.loadRelatedRequests()
+        }
+      },
+      immediate: true
+    }
   },
   methods: {
     formatDate,
@@ -405,6 +451,36 @@ export default {
       try {
         // If it's already an object (parsed JSON)
         if (typeof headers === 'object' && headers !== null) {
+          // Check if it's an array of objects (common format from some APIs)
+          if (Array.isArray(headers)) {
+            return headers.map((header, index) => {
+              if (typeof header === 'object' && header !== null) {
+                // If it's an object with name/value properties
+                if (header.name && header.value !== undefined) {
+                  return {
+                    name: header.name,
+                    value: Array.isArray(header.value) ? header.value.join(', ') : String(header.value)
+                  }
+                }
+                // If it's an object with key-value pairs, take the first entry
+                const entries = Object.entries(header)
+                if (entries.length > 0) {
+                  const [name, value] = entries[0]
+                  return {
+                    name,
+                    value: Array.isArray(value) ? value.join(', ') : String(value)
+                  }
+                }
+              }
+              // Fallback for other array items
+              return {
+                name: `Header ${index}`,
+                value: String(header)
+              }
+            })
+          }
+          
+          // If it's a plain object, convert to array of name-value pairs
           return Object.entries(headers).map(([name, value]) => ({
             name,
             value: Array.isArray(value) ? value.join(', ') : String(value)
@@ -415,10 +491,10 @@ export default {
         if (typeof headers === 'string') {
           try {
             const parsed = JSON.parse(headers)
-            return Object.entries(parsed).map(([name, value]) => ({
-              name,
-              value: Array.isArray(value) ? value.join(', ') : String(value)
-            }))
+            if (typeof parsed === 'object' && parsed !== null) {
+              // Recursively call parseHeaders to handle the parsed object
+              return this.parseHeaders(parsed)
+            }
           } catch {
             // If JSON parsing fails, try to parse as HTTP header format
             return headers
@@ -459,7 +535,60 @@ export default {
         return JSON.stringify(body, null, 2)
       }
       return String(body)
+    },
+    openModal(title, content, language = 'json') {
+      this.modalTitle = title
+      this.modalContent = content
+      this.modalLanguage = language
+      this.showModal = true
+    },
+    closeModal() {
+      this.showModal = false
+      this.modalTitle = ''
+      this.modalContent = ''
+      this.modalLanguage = 'json'
+    },
+    async loadRelatedRequests() {
+      if (!this.request || !this.request.endpoint_id) {
+        this.relatedRequests = []
+        return
+      }
+
+      this.loadingRelatedRequests = true
+      try {
+        const result = await this.$store.dispatch('makeApiCall', {
+          endpoint: `/requests?endpoint_id=${this.request.endpoint_id}`
+        })
+        this.relatedRequests = result.data || []
+      } catch (error) {
+        console.error('Error loading related requests:', error)
+        this.relatedRequests = []
+      } finally {
+        this.loadingRelatedRequests = false
+      }
     }
   }
 }
 </script>
+
+<style scoped>
+.clickable-content {
+  transition: background-color 0.2s ease;
+}
+
+.clickable-content:hover {
+  background-color: #f8f9fa;
+}
+
+.clickable-content:hover::after {
+  content: "Click to view full content";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 0.75rem;
+  color: #6c757d;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+</style>

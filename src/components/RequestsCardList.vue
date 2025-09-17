@@ -23,15 +23,15 @@
                 <h6 class="card-title mb-2">
                   <router-link :to="`/requests/${request.id}`" class="text-decoration-none">
                     <span class="text-muted">{{ request.domain }}</span><span class="fw-bold">{{ getTruncatedPath(request.url) }}</span>
-                    <button 
-                      v-if="isUrlTruncated(request.url)" 
-                      @click="showFullUrl(request.id)" 
-                      class="btn btn-link btn-sm p-0 ms-1"
-                      style="font-size: 0.75rem;"
-                    >
-                      see more
-                    </button>
                   </router-link>
+                  <button 
+                    v-if="isUrlTruncated(request.url)" 
+                    @click.stop="showFullUrl(request.id)" 
+                    class="btn btn-link btn-sm p-0 ms-1"
+                    style="font-size: 0.75rem;"
+                  >
+                    see more
+                  </button>
                 </h6>
 
                 <!-- Full URL display when expanded -->
@@ -39,7 +39,7 @@
                   <small class="text-muted d-block">
                     <strong>Full URL:</strong> {{ request.url }}
                     <button 
-                      @click="hideFullUrl(request.id)" 
+                      @click.stop="hideFullUrl(request.id)" 
                       class="btn btn-link btn-sm p-0 ms-1"
                       style="font-size: 0.75rem;"
                     >

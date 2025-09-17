@@ -1,0 +1,2 @@
+on request listing views (requests section of Endpoints, Request Listing pages, etc), analyse the 4 hashes of each request, and assign a random color style for every hash that appear more than once.
+show contents of search_results string array on Requst listing page.

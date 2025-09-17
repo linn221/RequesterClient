@@ -4,7 +4,8 @@
       ref="input"
       type="text"
       class="form-control"
-      :placeholder="placeholder"
+      :class="{ 'is-valid': selectedValue, 'border-success': selectedValue }"
+      :placeholder="selectedValue ? '' : placeholder"
       v-model="searchTerm"
       @input="onInput"
       @keydown="onKeydown"
@@ -12,6 +13,18 @@
       @blur="onBlur"
       autocomplete="off"
     >
+    
+    <!-- Clear button when something is selected -->
+    <button 
+      v-if="selectedValue" 
+      type="button" 
+      class="btn btn-sm btn-outline-secondary position-absolute end-0 top-50 translate-middle-y me-2"
+      @click="clear"
+      style="z-index: 10;"
+      title="Clear selection"
+    >
+      ✕
+    </button>
     
     <!-- Suggestions dropdown -->
     <div 
@@ -90,7 +103,8 @@ export default {
       searchTerm: '',
       showSuggestions: false,
       selectedIndex: -1,
-      blurTimeout: null
+      blurTimeout: null,
+      selectedValue: null
     }
   },
   computed: {
@@ -117,10 +131,23 @@ export default {
       handler(newValue) {
         if (typeof newValue === 'object' && newValue) {
           this.searchTerm = this.getOptionLabel(newValue)
-        } else if (typeof newValue === 'string') {
+          this.selectedValue = this.getOptionValue(newValue)
+        } else if (typeof newValue === 'string' && newValue) {
           this.searchTerm = newValue
+          this.selectedValue = newValue
+        } else if (typeof newValue === 'number' && newValue) {
+          // Find the option that matches this value
+          const option = this.options.find(opt => this.getOptionValue(opt) === newValue)
+          if (option) {
+            this.searchTerm = this.getOptionLabel(option)
+            this.selectedValue = newValue
+          } else {
+            this.searchTerm = ''
+            this.selectedValue = null
+          }
         } else {
           this.searchTerm = ''
+          this.selectedValue = null
         }
       }
     }
@@ -193,6 +220,7 @@ export default {
     },
     selectOption(option) {
       this.searchTerm = this.getOptionLabel(option)
+      this.selectedValue = this.getOptionValue(option)
       this.showSuggestions = false
       this.selectedIndex = -1
       this.$emit('update:modelValue', this.getOptionValue(option))
@@ -207,6 +235,7 @@ export default {
     },
     clear() {
       this.searchTerm = ''
+      this.selectedValue = null
       this.showSuggestions = false
       this.selectedIndex = -1
       this.$emit('update:modelValue', '')

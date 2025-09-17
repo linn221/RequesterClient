@@ -28,7 +28,7 @@
               </select>
             </div>
 
-            <div class="col-md-6 col-lg-3 mb-3">
+            <div class="col-12 mb-3">
               <label for="endpoint_id" class="form-label">Endpoint</label>
               <AutocompleteInput
                 v-model="filters.endpoint_id"

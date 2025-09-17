@@ -56,6 +56,18 @@
                 </div>
               </div>
 
+              <div class="mb-3">
+                <label for="ignored_headers" class="form-label">Ignored Headers</label>
+                <PillInput
+                  v-model="ignoredHeaders"
+                  placeholder="Type header names and press space to add..."
+                />
+                <div class="form-text">
+                  Specify headers to ignore during processing. Each header should be added as a separate pill.
+                  Common headers to ignore: User-Agent, Accept-Encoding, Connection, etc.
+                </div>
+              </div>
+
               <div class="d-flex justify-content-end gap-2">
                 <button type="button" @click="clearFile" class="btn btn-outline-secondary">Clear</button>
                 <button type="submit" class="btn btn-primary" :disabled="!selectedFile || !selectedProgramId">
@@ -160,15 +172,21 @@
 <script>
 import { formatDate } from '../config/api'
 
+import PillInput from '../components/PillInput.vue'
+
 export default {
   name: 'HARImport',
+  components: {
+    PillInput
+  },
   data() {
     return {
       selectedFile: null,
       selectedProgramId: '',
       fileError: null,
       recentJobs: [],
-      programs: []
+      programs: [],
+      ignoredHeaders: []
     }
   },
   async mounted() {
@@ -243,6 +261,11 @@ export default {
         const formData = new FormData()
         formData.append('file', this.selectedFile)
         formData.append('program_id', this.selectedProgramId)
+        
+        // Add ignored headers as JSON string
+        if (this.ignoredHeaders.length > 0) {
+          formData.append('ignored_headers', JSON.stringify(this.ignoredHeaders))
+        }
 
         const result = await this.$store.dispatch('makeApiCall', {
           endpoint: '/import_har',
@@ -269,6 +292,7 @@ export default {
       this.selectedFile = null
       this.selectedProgramId = ''
       this.fileError = null
+      this.ignoredHeaders = []
       if (this.$refs.fileInput) {
         this.$refs.fileInput.value = ''
       }
