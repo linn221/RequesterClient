@@ -45,7 +45,9 @@
           </div>
           <div v-if="endpoint.description">
             <p><strong>Description:</strong></p>
-            <div class="bg-light p-3 rounded">{{ endpoint.description }}</div>
+            <div class="bg-light p-3 rounded">
+              <UrlText :text="endpoint.description" />
+            </div>
           </div>
         </div>
       </div>
@@ -213,12 +215,14 @@
 import { formatDate } from '../../config/api'
 import NotesListComponent from '../../components/NotesList.vue'
 import RequestsCardList from '../../components/RequestsCardList.vue'
+import UrlText from '../../components/UrlText.vue'
 
 export default {
   name: 'EndpointDetail',
   components: {
     NotesListComponent,
-    RequestsCardList
+    RequestsCardList,
+    UrlText
   },
   props: ['id'],
   data() {

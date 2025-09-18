@@ -1,11 +1,23 @@
 <template>
   <div>
-    <div v-if="requests.length === 0" class="text-center text-muted py-4">
-      <p>{{ emptyMessage }}</p>
+    <!-- Hash Filter Bar -->
+    <HashFilterBar 
+      v-if="localHashManager"
+      :requests="allRequests"
+      :visible-hashes="visibleHashes"
+      :hash-manager="localHashManager"
+      @hash-removed="removeHashFilter"
+      @scroll-to-hash="scrollToHash"
+      @clear-filters="clearAllFilters"
+    />
+
+    <div v-if="filteredRequests.length === 0" class="text-center text-muted py-4">
+      <p v-if="visibleHashes.length > 0">No requests match the selected hash filters.</p>
+      <p v-else>{{ emptyMessage }}</p>
     </div>
 
     <div v-else class="row">
-      <div v-for="request in requests" :key="request.id" class="col-12 mb-3">
+      <div v-for="request in filteredRequests" :key="request.id" class="col-12 mb-3" :ref="`request-${request.id}`">
         <div class="card">
           <div class="card-body">
             <div class="row align-items-center">
@@ -18,6 +30,16 @@
                     {{ request.status_code }}
                   </span>
                   <small class="text-muted">#{{ request.sequence_number }}</small>
+                  
+                  <!-- Additional info badges -->
+                  <div class="ms-2 d-flex gap-1">
+                    <span v-if="request.size" class="badge bg-info" :title="`Size: ${formatBytes(request.size)}`">
+                      {{ formatBytes(request.size) }}
+                    </span>
+                    <span v-if="request.content_type" class="badge bg-secondary" :title="`Response Content Type: ${request.content_type}`">
+                      {{ getContentTypeShort(request.content_type) }}
+                    </span>
+                  </div>
                 </div>
                 
                 <h6 class="card-title mb-2">
@@ -79,12 +101,45 @@
                     <strong>Search Results:</strong>
                   </small>
                   <div class="mt-1">
-                    <small v-for="(result, index) in request.search_results.slice(0, 3)" :key="index" class="d-block text-truncate">
+                    <small v-for="(result, index) in request.search_results.slice(0, 5)" :key="index" class="d-block text-truncate">
                       {{ result }}
                     </small>
-                    <small v-if="request.search_results.length > 3" class="text-muted">
-                      +{{ request.search_results.length - 3 }} more results
+                    <small v-if="request.search_results.length > 5" class="text-muted">
+                      +{{ request.search_results.length - 5 }} more results
                     </small>
+                  </div>
+                </div>
+
+                <!-- Hash Display -->
+                <div v-if="hasRequestHashes(request)" class="mt-2">
+                  <small class="text-muted">
+                    <strong>Hashes:</strong>
+                  </small>
+                  <div class="mt-1 d-flex flex-wrap gap-1">
+                    <span 
+                      v-if="request.req_hash" 
+                      class="badge" 
+                      :style="{ backgroundColor: getHashColor(request.req_hash), color: 'white' }"
+                      :title="`Request Hash: ${request.req_hash}`"
+                    >
+                      {{ getHashDisplayText(request.req_hash) }}
+                    </span>
+                    <span 
+                      v-if="request.response_hash" 
+                      class="badge" 
+                      :style="{ backgroundColor: getHashColor(request.response_hash), color: 'white' }"
+                      :title="`Response Hash: ${request.response_hash}`"
+                    >
+                      {{ getHashDisplayText(request.response_hash) }}
+                    </span>
+                    <span 
+                      v-if="request.response_body_hash" 
+                      class="badge" 
+                      :style="{ backgroundColor: getHashColor(request.response_body_hash), color: 'white' }"
+                      :title="`Response Body Hash: ${request.response_body_hash}`"
+                    >
+                      {{ getHashDisplayText(request.response_body_hash) }}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -103,8 +158,14 @@
 </template>
 
 <script>
+import { HashColorManager } from '../utils/hashColors.js'
+import HashFilterBar from './HashFilterBar.vue'
+
 export default {
   name: 'RequestsCardList',
+  components: {
+    HashFilterBar
+  },
   props: {
     requests: {
       type: Array,
@@ -121,8 +182,41 @@ export default {
   },
   data() {
     return {
-      expandedUrls: []
+      expandedUrls: [],
+      visibleHashes: [],
+      localHashManager: new HashColorManager()
     }
+  },
+  computed: {
+    allRequests() {
+      return this.requests
+    },
+    filteredRequests() {
+      if (this.visibleHashes.length === 0 || !this.localHashManager) {
+        return this.requests
+      }
+      return this.localHashManager.filterRequestsByVisibleHashes(this.requests, this.visibleHashes)
+    }
+  },
+  watch: {
+    requests: {
+      handler(newRequests) {
+        if (newRequests && newRequests.length > 0 && this.localHashManager) {
+          // Count hash occurrences for current requests using local manager
+          this.localHashManager.countHashOccurrences(newRequests)
+          // Clear visible hashes when requests change to avoid stale filters
+          this.visibleHashes = []
+        } else {
+          // If no requests, clear visible hashes
+          this.visibleHashes = []
+        }
+      },
+      immediate: true
+    }
+  },
+  beforeUnmount() {
+    // Clean up local hash manager when component is destroyed
+    this.localHashManager = null
   },
   methods: {
     getMethodBadgeClass(method) {
@@ -170,7 +264,94 @@ export default {
       if (index > -1) {
         this.expandedUrls.splice(index, 1)
       }
+    },
+    getHashColor(hash) {
+      return this.localHashManager ? this.localHashManager.getColorForHash(hash) : null
+    },
+    getHashDisplayText(hash) {
+      return this.localHashManager ? this.localHashManager.getHashDisplayText(hash) : ''
+    },
+    shouldShowHash(hash) {
+      return this.localHashManager ? this.localHashManager.shouldShowHash(hash) : false
+    },
+    hasRequestHashes(request) {
+      return !!(request.req_hash || request.response_hash || request.response_body_hash)
+    },
+    formatBytes(bytes) {
+      if (!bytes || bytes === 0) return '0 B'
+      const k = 1024
+      const sizes = ['B', 'KB', 'MB', 'GB']
+      const i = Math.floor(Math.log(bytes) / Math.log(k))
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i]
+    },
+    getContentTypeShort(contentType) {
+      if (!contentType) return ''
+      // Extract the main type (e.g., "application/json" -> "json")
+      const parts = contentType.split('/')
+      if (parts.length > 1) {
+        const subtype = parts[1].split(';')[0] // Remove charset info
+        return subtype.length > 10 ? subtype.substring(0, 10) + '...' : subtype
+      }
+      return contentType.length > 10 ? contentType.substring(0, 10) + '...' : contentType
+    },
+    removeHashFilter(hash) {
+      const index = this.visibleHashes.indexOf(hash)
+      if (index > -1) {
+        this.visibleHashes.splice(index, 1)
+      }
+    },
+    clearAllFilters() {
+      this.visibleHashes = []
+    },
+    scrollToHash(hash) {
+      // Find the first request that contains this hash from ALL requests (not filtered)
+      const targetRequest = this.requests.find(request => {
+        return request.req_hash === hash || 
+               request.response_hash === hash || 
+               request.response_body_hash === hash
+      })
+      
+      if (targetRequest) {
+        // Wait for next tick to ensure DOM is updated
+        this.$nextTick(() => {
+          const element = this.$refs[`request-${targetRequest.id}`]
+          if (element && element[0]) {
+            element[0].scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center' 
+            })
+            
+            // Add temporary highlight animation
+            element[0].classList.add('hash-highlight')
+            setTimeout(() => {
+              element[0].classList.remove('hash-highlight')
+            }, 2000)
+          }
+        })
+      }
     }
   }
 }
 </script>
+
+<style scoped>
+/* Hash highlight animation */
+.hash-highlight {
+  animation: hashPulse 2s ease-in-out;
+}
+
+@keyframes hashPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.7);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(13, 110, 253, 0.3);
+    transform: scale(1.02);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(13, 110, 253, 0);
+    transform: scale(1);
+  }
+}
+</style>

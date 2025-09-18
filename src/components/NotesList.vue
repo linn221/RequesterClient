@@ -28,7 +28,9 @@
 
             <!-- Display mode -->
             <div v-else>
-              <p class="mb-1" style="white-space: pre-wrap;">{{ note.value }}</p>
+              <p class="mb-1" style="white-space: pre-wrap;">
+                <UrlText :text="note.value" />
+              </p>
               <div class="d-flex align-items-center gap-3">
                 <small class="text-muted">
                   Created {{ formatDate(note.created_at) }}
@@ -54,9 +56,13 @@
 
 <script>
 import { formatDate } from '../config/api'
+import UrlText from './UrlText.vue'
 
 export default {
   name: 'NotesListComponent',
+  components: {
+    UrlText
+  },
   props: {
     notes: {
       type: Array,

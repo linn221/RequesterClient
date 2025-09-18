@@ -16,7 +16,7 @@
           <div class="d-flex flex-column" style="height: 70vh;">
             <!-- Search Bar -->
             <div class="p-3 border-bottom">
-              <div class="input-group">
+              <div class="input-group mb-2">
                 <span class="input-group-text">
                   🔍
                 </span>
@@ -54,16 +54,29 @@
                   ✕
                 </button>
               </div>
-              <div v-if="searchTerm" class="mt-2">
-                <small class="text-muted" v-if="searchResults.length > 0">
-                  {{ currentSearchIndex + 1 }} of {{ searchResults.length }} matches
-                </small>
-                <small class="text-muted" v-else-if="searchTerm">
-                  No matches found
-                </small>
-                <small class="text-danger" v-if="regexError">
-                  Invalid regex: {{ regexError }}
-                </small>
+              <div class="d-flex justify-content-between align-items-center">
+                <div v-if="searchTerm">
+                  <small class="text-muted" v-if="searchResults.length > 0">
+                    {{ currentSearchIndex + 1 }} of {{ searchResults.length }} matches
+                  </small>
+                  <small class="text-muted" v-else-if="searchTerm">
+                    No matches found
+                  </small>
+                  <small class="text-danger" v-if="regexError">
+                    Invalid regex: {{ regexError }}
+                  </small>
+                </div>
+                <div class="form-check">
+                  <input 
+                    class="form-check-input" 
+                    type="checkbox" 
+                    id="wordWrapToggle"
+                    v-model="wordWrap"
+                  >
+                  <label class="form-check-label" for="wordWrapToggle">
+                    <small>Word wrap</small>
+                  </label>
+                </div>
               </div>
             </div>
             
@@ -74,7 +87,7 @@
                 class="p-3 mb-0" 
                 :class="languageClass"
                 v-html="highlightedContent"
-                style="white-space: pre-wrap; word-wrap: break-word; min-width: max-content; margin: 0;"
+                :style="wordWrap ? 'white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; margin: 0;' : 'white-space: pre; word-wrap: normal; overflow-wrap: normal; min-width: max-content; margin: 0;'"
               ></pre>
             </div>
           </div>
@@ -123,7 +136,8 @@ export default {
       searchTerm: '',
       searchResults: [],
       currentSearchIndex: 0,
-      regexError: null
+      regexError: null,
+      wordWrap: false
     }
   },
   computed: {
@@ -271,9 +285,8 @@ export default {
     scrollToMatch() {
       if (this.searchResults.length === 0) return
       
-      const match = this.searchResults[this.currentSearchIndex]
       const contentElement = this.$refs.contentRef
-      const scrollContainer = contentElement.parentElement
+      const scrollContainer = contentElement?.parentElement
       
       if (contentElement && scrollContainer) {
         // Find the highlighted match element
@@ -281,19 +294,11 @@ export default {
         if (highlightedElements.length > this.currentSearchIndex) {
           const targetElement = highlightedElements[this.currentSearchIndex]
           
-          // Get the container dimensions
-          const containerRect = scrollContainer.getBoundingClientRect()
-          const targetRect = targetElement.getBoundingClientRect()
-          
-          // Calculate scroll positions
-          const scrollTop = scrollContainer.scrollTop + (targetRect.top - containerRect.top) - (containerRect.height / 2)
-          const scrollLeft = scrollContainer.scrollLeft + (targetRect.left - containerRect.left) - (containerRect.width / 2)
-          
-          // Smooth scroll to position
-          scrollContainer.scrollTo({
-            top: Math.max(0, scrollTop),
-            left: Math.max(0, scrollLeft),
-            behavior: 'smooth'
+          // Use scrollIntoView for better compatibility
+          targetElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'center'
           })
         }
       }
@@ -355,10 +360,6 @@ pre {
   border-radius: 0.375rem;
   font-size: 0.875rem;
   line-height: 1.5;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  min-width: max-content;
   margin: 0;
   padding: 1rem;
 }
@@ -367,6 +368,7 @@ pre {
 .flex-grow-1 {
   overflow: auto !important;
   -webkit-overflow-scrolling: touch;
+  position: relative;
 }
 
 /* Fix scrollbar positioning */

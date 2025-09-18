@@ -50,17 +50,85 @@
               </select>
             </div>
 
-            <div class="col-md-6 col-lg-3 mb-3">
-              <label for="order_by" class="form-label">Sort By</label>
-              <select class="form-select" id="order_by" v-model="filters.order_by">
-                <option value="">Default</option>
-                <option value="method">Method</option>
-                <option value="content_type">Content Type</option>
-                <option value="size">Size</option>
-                <option value="latency">Latency</option>
-                <option value="url">URL</option>
-                <option value="sequence_number">Sequence Number</option>
-              </select>
+            <div class="col-12 mb-3">
+              <label class="form-label">Sorting (Multiple Ordering)</label>
+              <div class="row">
+                <!-- Primary Sort -->
+                <div class="col-md-6 mb-2">
+                  <div class="d-flex gap-2 align-items-center">
+                    <select class="form-select" v-model="filters.order_by1">
+                      <option value="">Primary Sort</option>
+                      <option value="method">Method</option>
+                      <option value="content_type">Content Type</option>
+                      <option value="size">Size</option>
+                      <option value="latency">Latency</option>
+                      <option value="url">URL</option>
+                      <option value="sequence_number">Sequence Number</option>
+                    </select>
+                    <select class="form-select" style="width: 100px;" v-model="filters.asc1">
+                      <option :value="true">ASC</option>
+                      <option :value="false">DESC</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Secondary Sort -->
+                <div class="col-md-6 mb-2">
+                  <div class="d-flex gap-2 align-items-center">
+                    <select class="form-select" v-model="filters.order_by2">
+                      <option value="">Secondary Sort</option>
+                      <option value="method">Method</option>
+                      <option value="content_type">Content Type</option>
+                      <option value="size">Size</option>
+                      <option value="latency">Latency</option>
+                      <option value="url">URL</option>
+                      <option value="sequence_number">Sequence Number</option>
+                    </select>
+                    <select class="form-select" style="width: 100px;" v-model="filters.asc2">
+                      <option :value="true">ASC</option>
+                      <option :value="false">DESC</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Tertiary Sort -->
+                <div class="col-md-6 mb-2">
+                  <div class="d-flex gap-2 align-items-center">
+                    <select class="form-select" v-model="filters.order_by3">
+                      <option value="">Tertiary Sort</option>
+                      <option value="method">Method</option>
+                      <option value="content_type">Content Type</option>
+                      <option value="size">Size</option>
+                      <option value="latency">Latency</option>
+                      <option value="url">URL</option>
+                      <option value="sequence_number">Sequence Number</option>
+                    </select>
+                    <select class="form-select" style="width: 100px;" v-model="filters.asc3">
+                      <option :value="true">ASC</option>
+                      <option :value="false">DESC</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Quaternary Sort -->
+                <div class="col-md-6 mb-2">
+                  <div class="d-flex gap-2 align-items-center">
+                    <select class="form-select" v-model="filters.order_by4">
+                      <option value="">Quaternary Sort</option>
+                      <option value="method">Method</option>
+                      <option value="content_type">Content Type</option>
+                      <option value="size">Size</option>
+                      <option value="latency">Latency</option>
+                      <option value="url">URL</option>
+                      <option value="sequence_number">Sequence Number</option>
+                    </select>
+                    <select class="form-select" style="width: 100px;" v-model="filters.asc4">
+                      <option :value="true">ASC</option>
+                      <option :value="false">DESC</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div class="col-12 mb-3">
@@ -74,20 +142,6 @@
               ></textarea>
               <div class="form-text">
                 Example: <code>status_code = 200 AND method = 'GET'</code>
-              </div>
-            </div>
-
-            <div class="col-12">
-              <div class="form-check">
-                <input 
-                  class="form-check-input" 
-                  type="checkbox" 
-                  id="asc" 
-                  v-model="filters.asc"
-                >
-                <label class="form-check-label" for="asc">
-                  Ascending Order
-                </label>
               </div>
             </div>
           </div>
@@ -145,8 +199,14 @@ export default {
         endpoint_id: '',
         job_id: '',
         raw_sql: '',
-        order_by: '',
-        asc: false
+        order_by1: '',
+        asc1: true,
+        order_by2: '',
+        asc2: true,
+        order_by3: '',
+        asc3: true,
+        order_by4: '',
+        asc4: true
       }
     }
   },
@@ -196,8 +256,14 @@ export default {
         endpoint_id: '',
         job_id: '',
         raw_sql: '',
-        order_by: '',
-        asc: false
+        order_by1: '',
+        asc1: true,
+        order_by2: '',
+        asc2: true,
+        order_by3: '',
+        asc3: true,
+        order_by4: '',
+        asc4: true
       }
       this.loadRequests()
     },

@@ -236,13 +236,7 @@ export default {
         return
       }
 
-      // Validate file size (max 50MB)
-      const maxSize = 50 * 1024 * 1024
-      if (file.size > maxSize) {
-        this.fileError = 'File size must be less than 50MB'
-        this.selectedFile = null
-        return
-      }
+      // No file size limit for HAR imports
 
       this.selectedFile = file
     },

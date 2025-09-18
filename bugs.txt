@@ -1,6 +1,1 @@
-on Note filter, you only have filter for type and not for reference_id (also not sure if it is type and not reference_type. review the spec)
-
-On Request detail page, headers are being shown as `9: [object Object]` fix it and also I do not need the line number, just straight `$name: $vlue`. When I click on Response Body, I want to show the content in a big modal with syntax highlighting (like in VS Code, free to use library), with a search bar at the bottom that will jump to the match text on enter. Show that big modal for all 4 sections (Request+Response Headers+Body).
-You have miss ignored_headers field in import form. Add that field, which is a string, each header is separated by comma. I want in your UI to display each header as pill, current word will turn into a pill when space is pressed, and when deleting the space, the previous pill will turn into text.
-On Request listing page, on Endpoint filter, when I choose an Endpoint, current the UI makes no different (although, the filter is added). I need you to show in UI that that Endpoint is selected. Make the Endpoint field with the whole line, (since the Endpoint text is pretty long, so it is good to have.)
-On Request Details page, at the bottom section, add a new section named Related Requests, using the same Request Listing components, filtering the requests with the same endpoint_id at /requests/endpoint_id=$same_endpoint_id.
+content type is still not shown in request listing page

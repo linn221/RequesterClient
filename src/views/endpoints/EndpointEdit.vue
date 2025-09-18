@@ -141,7 +141,7 @@ export default {
           program_id: endpoint.program_id,
           method: endpoint.method,
           uri: endpoint.uri,
-          endpoint_type: endpoint.endpoint_type,
+          endpoint_type: String(endpoint.endpoint_type),
           description: endpoint.description
         }
       } catch (error) {

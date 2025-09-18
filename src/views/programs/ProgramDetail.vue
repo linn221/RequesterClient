@@ -32,7 +32,9 @@
           </div>
           <div v-if="program.note">
             <p><strong>Note:</strong></p>
-            <div class="bg-light p-3 rounded">{{ program.note }}</div>
+            <div class="bg-light p-3 rounded">
+              <UrlText :text="program.note" />
+            </div>
           </div>
         </div>
       </div>
@@ -200,12 +202,14 @@
 import { formatDate, apiRequest } from '../../config/api'
 import NotesListComponent from '../../components/NotesList.vue'
 import EndpointsCardList from '../../components/EndpointsCardList.vue'
+import UrlText from '../../components/UrlText.vue'
 
 export default {
   name: 'ProgramDetail',
   components: {
     NotesListComponent,
-    EndpointsCardList
+    EndpointsCardList,
+    UrlText
   },
   props: ['id'],
   data() {

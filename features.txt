@@ -1,2 +1,2 @@
-on request listing views (requests section of Endpoints, Request Listing pages, etc), analyse the 4 hashes of each request, and assign a random color style for every hash that appear more than once.
-show contents of search_results string array on Requst listing page.
+When displaying Notes (value of Note), if text contains a url, make it a hyperlink so that I can click and open in a new tab. Do it on other Description fields as well (Program, Endpoint, Requests, etc)
+the updated spec has new fields for Request Listing response, show them in request listing page(eg, size, content_type). On Filter form, the api now supports multiple ordering via order_by1,order_by2, etc. I should be able to order by multiple types, and able to choose ascending or descending for each. 
