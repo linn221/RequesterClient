@@ -42,6 +42,20 @@
               </small>
             </div>
 
+            <!-- Search Results -->
+            <div v-if="endpoint.search_results && endpoint.search_results.length > 0" class="mt-2">
+              <small class="text-muted">
+                <strong>Matched Results:</strong>
+              </small>
+              <div class="mt-1">
+                <small v-for="(result, index) in endpoint.search_results.slice(0, 3)" :key="index" class="d-block text-truncate" v-html="highlightSearchTerms(result, searchQuery)">
+                </small>
+                <small v-if="endpoint.search_results.length > 3" class="text-muted">
+                  +{{ endpoint.search_results.length - 3 }} more results
+                </small>
+              </div>
+            </div>
+
             <div class="d-flex justify-content-between align-items-center mt-auto">
               <small class="text-muted">
                 Updated {{ formatDate(endpoint.updated_at) }}
@@ -61,6 +75,7 @@
 
 <script>
 import { formatDate } from '../config/api'
+import { highlightSearchTerms } from '../utils/textSearch.js'
 
 export default {
   name: 'EndpointsCardList',
@@ -80,6 +95,10 @@ export default {
     showDeleteButton: {
       type: Boolean,
       default: false
+    },
+    searchQuery: {
+      type: String,
+      default: ''
     }
   },
   emits: ['endpoint-deleted'],
@@ -106,6 +125,9 @@ export default {
           console.error('Error deleting endpoint:', error)
         }
       }
+    },
+    highlightSearchTerms(text, searchQuery) {
+      return highlightSearchTerms(text, searchQuery)
     }
   }
 }

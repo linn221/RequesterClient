@@ -1,2 +1,2 @@
-When displaying Notes (value of Note), if text contains a url, make it a hyperlink so that I can click and open in a new tab. Do it on other Description fields as well (Program, Endpoint, Requests, etc)
-the updated spec has new fields for Request Listing response, show them in request listing page(eg, size, content_type). On Filter form, the api now supports multiple ordering via order_by1,order_by2, etc. I should be able to order by multiple types, and able to choose ascending or descending for each. 
+add a full width search bar on request listing page, doing the filtering on the client side, by searching the Text field, you must support regex, and display the matched results on each filtered request. For example, Matched results section should be like "hello, Coffee. lorem,kksd", "lsdsdjk dskfjksd coffee fksld". Also, bold the search text on that section.
+Add the same search function to Endpoint listing page. It also have Text field.

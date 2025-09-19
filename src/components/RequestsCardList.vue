@@ -98,11 +98,10 @@
                 <!-- Search Results -->
                 <div v-if="request.search_results && request.search_results.length > 0" class="mt-2">
                   <small class="text-muted">
-                    <strong>Search Results:</strong>
+                    <strong>Matched Results:</strong>
                   </small>
                   <div class="mt-1">
-                    <small v-for="(result, index) in request.search_results.slice(0, 5)" :key="index" class="d-block text-truncate">
-                      {{ result }}
+                    <small v-for="(result, index) in request.search_results.slice(0, 5)" :key="index" class="d-block text-truncate" v-html="highlightSearchTerms(result, searchQuery)">
                     </small>
                     <small v-if="request.search_results.length > 5" class="text-muted">
                       +{{ request.search_results.length - 5 }} more results
@@ -159,6 +158,7 @@
 
 <script>
 import { HashColorManager } from '../utils/hashColors.js'
+import { highlightSearchTerms } from '../utils/textSearch.js'
 import HashFilterBar from './HashFilterBar.vue'
 
 export default {
@@ -178,6 +178,10 @@ export default {
     showRelatedLinks: {
       type: Boolean,
       default: true
+    },
+    searchQuery: {
+      type: String,
+      default: ''
     }
   },
   data() {
@@ -329,6 +333,9 @@ export default {
           }
         })
       }
+    },
+    highlightSearchTerms(text, searchQuery) {
+      return highlightSearchTerms(text, searchQuery)
     }
   }
 }

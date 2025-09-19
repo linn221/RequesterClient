@@ -154,25 +154,39 @@
       </div>
     </div>
 
+    <!-- Text Search -->
+    <TextSearchBar
+      placeholder="Search in request text field (supports regex)..."
+      :total-count="allRequests.length"
+      :filtered-count="filteredRequests.length"
+      @search="onTextSearch"
+      @clear="onTextSearchClear"
+    />
+
     <!-- Results -->
     <div class="card">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h6 class="mb-0">
-          {{ requests.length }} Request{{ requests.length !== 1 ? 's' : '' }}
+          {{ filteredRequests.length }} Request{{ filteredRequests.length !== 1 ? 's' : '' }}
+          <span v-if="textSearchQuery" class="text-muted">
+            (filtered from {{ allRequests.length }})
+          </span>
         </h6>
         <button @click="refreshRequests" class="btn btn-sm btn-outline-primary">
           <i class="bi bi-arrow-clockwise"></i> Refresh
         </button>
       </div>
       <div class="card-body">
-        <div v-if="requests.length === 0" class="text-center text-muted py-4">
-          <p>No requests found.</p>
+        <div v-if="filteredRequests.length === 0" class="text-center text-muted py-4">
+          <p v-if="textSearchQuery">No requests match your search criteria.</p>
+          <p v-else>No requests found.</p>
           <router-link to="/import-har" class="btn btn-primary">Import HAR file to get started</router-link>
         </div>
 
         <RequestsCardList 
           v-else
-          :requests="requests"
+          :requests="filteredRequests"
+          :search-query="textSearchQuery"
           empty-message="No requests found. Import HAR file to get started"
         />
       </div>
@@ -184,16 +198,20 @@
 import { mapGetters } from 'vuex'
 import AutocompleteInput from '../../components/AutocompleteInput.vue'
 import RequestsCardList from '../../components/RequestsCardList.vue'
+import TextSearchBar from '../../components/TextSearchBar.vue'
+import { filterItemsByTextSearch } from '../../utils/textSearch.js'
 
 export default {
   name: 'RequestsList',
   components: {
     AutocompleteInput,
-    RequestsCardList
+    RequestsCardList,
+    TextSearchBar
   },
   data() {
     return {
       showFilters: false,
+      textSearchQuery: '',
       filters: {
         program_id: '',
         endpoint_id: '',
@@ -212,6 +230,15 @@ export default {
   },
   computed: {
     ...mapGetters(['requests', 'programs', 'endpoints', 'jobs']),
+    allRequests() {
+      return this.requests
+    },
+    filteredRequests() {
+      if (!this.textSearchQuery) {
+        return this.requests.map(request => ({ ...request, search_results: [] }))
+      }
+      return filterItemsByTextSearch(this.requests, this.textSearchQuery, 'text')
+    },
     endpointOptions() {
       return this.endpoints.map(endpoint => ({
         label: `${endpoint.method} ${endpoint.uri}`,
@@ -269,6 +296,12 @@ export default {
     },
     toggleFilters() {
       this.showFilters = !this.showFilters
+    },
+    onTextSearch(query) {
+      this.textSearchQuery = query
+    },
+    onTextSearchClear() {
+      this.textSearchQuery = ''
     }
   }
 }
