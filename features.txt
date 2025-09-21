@@ -1,2 +1,26 @@
-add a full width search bar on request listing page, doing the filtering on the client side, by searching the Text field, you must support regex, and display the matched results on each filtered request. For example, Matched results section should be like "hello, Coffee. lorem,kksd", "lsdsdjk dskfjksd coffee fksld". Also, bold the search text on that section.
-Add the same search function to Endpoint listing page. It also have Text field.
+on Request listing page, show the filter box on start up, (do not call request listing API yet)
+Filter by hash section should be small, insert a More button that expand and show all the hashes, but by default, show only small sets of hashes.
+Makes Response Body modal's scroll bar bigger (currently, browser default scroll bar is overlapping. I want a simple big scroll bar that will scroll the Content of Response body)
+Returns Text field for Request Listing, Endpoint Listing, and so on.
+
+# Backend
+Create Tags, and automatically set System tags like 'js','css','html' on Request when importing.
+Add xml import from Burp Suite
+Add domain filter in request listing page, includeSubdomains=1
+Add url_contains=/api/RMSHandler, url_match=/api/RMSHandler
+
+
+# Bugs
+## Frontend
+Go to Request detail page from the listing page filtered, then when going back to the listing page, the listing data are refresh without the filter, (ideally it should be at the previous position of previous listingp page)
+
+# Later Features
+Add Tags Under Hashes in Request Listing page
+Encode/Decode base64
+Image upload
+Export current requests as PDF
+Should be able to filter Notes by Selecting Program (multi select), Order By Date
+Copy the Request as CURL
+
+# Ideas
+Analysing .css,.js,.html file line by line, and display the comments on new Comment section.
