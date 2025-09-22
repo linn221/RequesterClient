@@ -70,14 +70,16 @@ export default {
     },
     updateInputWidth() {
       // Create a temporary element to measure text width
-      const temp = document.createElement('span')
-      temp.style.visibility = 'hidden'
-      temp.style.position = 'absolute'
-      temp.style.fontSize = '14px' // Match input font size
-      temp.textContent = this.currentInput || this.placeholder
-      document.body.appendChild(temp)
-      this.inputWidth = Math.max(200, temp.offsetWidth + 20)
-      document.body.removeChild(temp)
+      if (typeof document !== 'undefined') {
+        const temp = document.createElement('span')
+        temp.style.visibility = 'hidden'
+        temp.style.position = 'absolute'
+        temp.style.fontSize = '14px' // Match input font size
+        temp.textContent = this.currentInput || this.placeholder || ''
+        document.body.appendChild(temp)
+        this.inputWidth = Math.max(200, temp.offsetWidth + 20)
+        document.body.removeChild(temp)
+      }
     },
     handleKeydown(event) {
       if (event.key === ' ') {

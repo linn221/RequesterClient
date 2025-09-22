@@ -4,6 +4,7 @@
       <h2>Jobs</h2>
       <div class="btn-group">
         <router-link to="/import-har" class="btn btn-primary">Import HAR</router-link>
+        <router-link to="/import-burp-xml" class="btn btn-info">Import Burp XML</router-link>
         <button @click="refreshJobs" class="btn btn-outline-secondary">
           <i class="bi bi-arrow-clockwise"></i> Refresh
         </button>
@@ -34,7 +35,10 @@
       <div class="card-body">
         <div v-if="jobs.length === 0" class="text-center text-muted py-4">
           <p>No jobs found.</p>
-          <router-link to="/import-har" class="btn btn-primary">Import your first HAR file</router-link>
+          <div class="btn-group">
+            <router-link to="/import-har" class="btn btn-primary">Import HAR file</router-link>
+            <router-link to="/import-burp-xml" class="btn btn-info">Import Burp XML file</router-link>
+          </div>
         </div>
 
         <div v-else>
@@ -238,14 +242,14 @@ export default {
     formatJobType(jobType) {
       const types = {
         'import_har': 'HAR Import',
-        'import_xml': 'XML Import'
+        'import_burp_xml': 'Burp XML Import'
       }
       return types[jobType] || jobType
     },
     getTypeBadgeClass(jobType) {
       const classes = {
         'import_har': 'bg-primary',
-        'import_xml': 'bg-info'
+        'import_burp_xml': 'bg-info'
       }
       return classes[jobType] || 'bg-secondary'
     },

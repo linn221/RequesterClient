@@ -2,7 +2,7 @@
   <div>
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2>Request Details</h2>
-      <router-link to="/requests" class="btn btn-outline-secondary">Back to Requests</router-link>
+      <button @click="goBackToRequests" class="btn btn-outline-secondary">Back to Requests</button>
     </div>
 
     <div v-if="request">
@@ -157,6 +157,31 @@
                 <small class="text-muted font-monospace">{{ request.response_body_hash || 'N/A' }}</small>
               </p>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Curl Command Section -->
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h6 class="mb-0">Curl Command</h6>
+          <button @click="copyCurlCommand" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-clipboard"></i> Copy
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="position-relative">
+            <pre class="bg-light p-3 rounded mb-0" style="max-height: 200px; overflow-y: auto;" :class="{ 'expanded': showFullCurl }">
+              <code>{{ curlCommand }}</code>
+            </pre>
+            <button 
+              v-if="curlCommand.length > 200" 
+              @click="toggleCurlExpansion" 
+              class="btn btn-sm btn-outline-secondary position-absolute"
+              style="bottom: 10px; right: 10px;"
+            >
+              {{ showFullCurl ? 'Show Less' : 'Show More' }}
+            </button>
           </div>
         </div>
       </div>
@@ -354,7 +379,52 @@ export default {
       modalContent: '',
       modalLanguage: 'json',
       relatedRequests: [],
-      loadingRelatedRequests: false
+      loadingRelatedRequests: false,
+      showFullCurl: false
+    }
+  },
+  computed: {
+    curlCommand() {
+      if (!this.request) return ''
+      
+      const parts = ['curl']
+      
+      // Add method
+      if (this.request.method) {
+        parts.push(`-X ${this.request.method}`)
+      }
+      
+      // Add URL
+      if (this.request.url) {
+        parts.push(`"${this.request.url}"`)
+      }
+      
+      // Add headers
+      if (this.request.request_headers) {
+        const headers = this.parseHeaders(this.request.request_headers)
+        if (Array.isArray(headers)) {
+          headers.forEach(header => {
+            // Skip certain headers that curl handles automatically or shouldn't be copied
+            const skipHeaders = ['host', 'content-length', 'connection', 'upgrade']
+            if (header && header.name && !skipHeaders.includes(header.name.toLowerCase())) {
+              parts.push(`-H "${header.name}: ${header.value || ''}"`)
+            }
+          })
+        }
+      }
+      
+      // Add request body
+      if (this.request.request_body && this.request.method && 
+          this.request.method !== 'GET' && this.request.method !== 'HEAD') {
+        const body = this.request.request_body
+        if (typeof body === 'string' && body.trim()) {
+          // Escape quotes and newlines in the body
+          const escapedBody = body.replace(/"/g, '\\"').replace(/\n/g, '\\n').replace(/\r/g, '\\r')
+          parts.push(`-d "${escapedBody}"`)
+        }
+      }
+      
+      return parts.join(' \\\n  ')
     }
   },
   async mounted() {
@@ -566,6 +636,54 @@ export default {
       } finally {
         this.loadingRelatedRequests = false
       }
+    },
+    goBackToRequests() {
+      // Use browser history to go back, which preserves the previous state
+      this.$router.go(-1)
+    },
+    async copyCurlCommand() {
+      // Try modern clipboard API first (only works in secure contexts)
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+          await navigator.clipboard.writeText(this.curlCommand)
+          console.log('Curl command copied to clipboard')
+          return
+        } catch (error) {
+          console.warn('Clipboard API failed, trying fallback:', error)
+        }
+      }
+      
+      // Fallback method for non-secure contexts or when clipboard API fails
+      try {
+        const textArea = document.createElement('textarea')
+        textArea.value = this.curlCommand
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-999999px'
+        textArea.style.top = '-999999px'
+        textArea.style.opacity = '0'
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
+        
+        const successful = document.execCommand('copy')
+        document.body.removeChild(textArea)
+        
+        if (successful) {
+          console.log('Curl command copied to clipboard (fallback method)')
+        } else {
+          throw new Error('Fallback copy method failed')
+        }
+      } catch (fallbackError) {
+        console.error('All copy methods failed:', fallbackError)
+        // As a last resort, show the command in a prompt
+        const userInput = prompt('Copy this curl command:', this.curlCommand)
+        if (userInput !== null) {
+          console.log('User copied curl command from prompt')
+        }
+      }
+    },
+    toggleCurlExpansion() {
+      this.showFullCurl = !this.showFullCurl
     }
   }
 }
@@ -590,5 +708,20 @@ export default {
   background: rgba(255, 255, 255, 0.9);
   padding: 2px 6px;
   border-radius: 3px;
+}
+
+/* Curl command styles */
+pre.expanded {
+  max-height: none !important;
+}
+
+.hash-highlight {
+  animation: highlight 2s ease-in-out;
+}
+
+@keyframes highlight {
+  0% { background-color: #fff3cd; }
+  50% { background-color: #ffeaa7; }
+  100% { background-color: transparent; }
 }
 </style>

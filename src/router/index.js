@@ -31,6 +31,9 @@ import JobsList from '../views/jobs/JobsList.vue'
 // HAR Import
 import HARImport from '../views/HARImport.vue'
 
+// Burp XML Import
+import BurpXMLImport from '../views/BurpXMLImport.vue'
+
 const routes = [
   {
     path: '/',
@@ -123,6 +126,12 @@ const routes = [
     path: '/import-har',
     name: 'HARImport',
     component: HARImport
+  },
+  // Burp XML Import
+  {
+    path: '/import-burp-xml',
+    name: 'BurpXMLImport',
+    component: BurpXMLImport
   }
 ]
 

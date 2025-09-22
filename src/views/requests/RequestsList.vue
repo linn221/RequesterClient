@@ -249,7 +249,8 @@ export default {
   },
   async mounted() {
     await this.loadDependencies()
-    await this.loadRequests()
+    this.initializeFromUrl()
+    // Don't load requests on startup - only when filters are applied
   },
   methods: {
     async loadDependencies() {
@@ -266,12 +267,23 @@ export default {
     },
     async loadRequests() {
       try {
-        await this.$store.dispatch('fetchRequests', this.filters)
+        // Only fetch requests if there are active filters to avoid heavy load
+        const hasActiveFilters = Object.values(this.filters).some(value => 
+          value !== '' && value !== null && value !== undefined
+        )
+        
+        if (hasActiveFilters) {
+          await this.$store.dispatch('fetchRequests', this.filters)
+        } else {
+          // Clear requests if no filters are active
+          this.$store.commit('SET_REQUESTS', [])
+        }
       } catch (error) {
         console.error('Error loading requests:', error)
       }
     },
     async applyFilters() {
+      this.updateUrl()
       await this.loadRequests()
     },
     async refreshRequests() {
@@ -292,6 +304,7 @@ export default {
         order_by4: '',
         asc4: true
       }
+      this.updateUrl()
       this.loadRequests()
     },
     toggleFilters() {
@@ -302,6 +315,64 @@ export default {
     },
     onTextSearchClear() {
       this.textSearchQuery = ''
+    },
+    initializeFromUrl() {
+      const query = this.$route.query
+      
+      // Always show filters on startup
+      this.showFilters = true
+      
+      // Check if there are any query parameters
+      const hasQueryParams = Object.keys(query).length > 0
+      
+      if (hasQueryParams) {
+        // Apply query parameters to filters
+        this.filters = {
+          program_id: query.program_id || '',
+          endpoint_id: query.endpoint_id || '',
+          job_id: query.job_id || '',
+          raw_sql: query.raw_sql || '',
+          order_by1: query.order_by1 || '',
+          asc1: query.asc1 === 'false' ? false : true,
+          order_by2: query.order_by2 || '',
+          asc2: query.asc2 === 'false' ? false : true,
+          order_by3: query.order_by3 || '',
+          asc3: query.asc3 === 'false' ? false : true,
+          order_by4: query.order_by4 || '',
+          asc4: query.asc4 === 'false' ? false : true
+        }
+      }
+    },
+    updateUrl() {
+      const query = {}
+      
+      // Only add non-empty filter values to URL
+      if (this.filters.program_id) query.program_id = this.filters.program_id
+      if (this.filters.endpoint_id) query.endpoint_id = this.filters.endpoint_id
+      if (this.filters.job_id) query.job_id = this.filters.job_id
+      if (this.filters.raw_sql) query.raw_sql = this.filters.raw_sql
+      if (this.filters.order_by1) {
+        query.order_by1 = this.filters.order_by1
+        query.asc1 = this.filters.asc1
+      }
+      if (this.filters.order_by2) {
+        query.order_by2 = this.filters.order_by2
+        query.asc2 = this.filters.asc2
+      }
+      if (this.filters.order_by3) {
+        query.order_by3 = this.filters.order_by3
+        query.asc3 = this.filters.asc3
+      }
+      if (this.filters.order_by4) {
+        query.order_by4 = this.filters.order_by4
+        query.asc4 = this.filters.asc4
+      }
+      
+      // Update URL without triggering navigation
+      this.$router.replace({ 
+        name: 'RequestsList', 
+        query: Object.keys(query).length > 0 ? query : undefined 
+      })
     }
   }
 }

@@ -192,11 +192,15 @@ export default {
           // Reset scroll position to top
           this.resetScrollPosition()
           // Add keyboard event listeners
-          document.addEventListener('keydown', this.handleKeydown)
+          if (typeof document !== 'undefined') {
+            document.addEventListener('keydown', this.handleKeydown)
+          }
         })
       } else {
         // Remove keyboard event listeners
-        document.removeEventListener('keydown', this.handleKeydown)
+        if (typeof document !== 'undefined') {
+          document.removeEventListener('keydown', this.handleKeydown)
+        }
       }
     },
     searchTerm(newVal) {
@@ -340,7 +344,9 @@ export default {
   },
   beforeUnmount() {
     // Clean up event listeners
-    document.removeEventListener('keydown', this.handleKeydown)
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('keydown', this.handleKeydown)
+    }
   }
 }
 </script>
@@ -369,26 +375,40 @@ pre {
   overflow: auto !important;
   -webkit-overflow-scrolling: touch;
   position: relative;
+  scrollbar-width: thick;
+  scrollbar-color: #6c757d #e9ecef;
 }
 
-/* Fix scrollbar positioning */
+/* Fix scrollbar positioning - make it bigger and more visible */
 .flex-grow-1::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 16px;
+  height: 16px;
 }
 
 .flex-grow-1::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
+  background: #e9ecef;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
 }
 
 .flex-grow-1::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
+  background: #6c757d;
+  border-radius: 8px;
+  border: 2px solid #e9ecef;
+  min-height: 40px;
 }
 
 .flex-grow-1::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: #495057;
+  border-color: #dee2e6;
+}
+
+.flex-grow-1::-webkit-scrollbar-thumb:active {
+  background: #343a40;
+}
+
+.flex-grow-1::-webkit-scrollbar-corner {
+  background: #e9ecef;
 }
 
 mark {

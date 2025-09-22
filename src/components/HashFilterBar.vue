@@ -3,7 +3,7 @@
     <div class="d-flex flex-wrap gap-2 align-items-center">
       <span class="text-muted small me-2">Filter by hash:</span>
       <div 
-        v-for="hashInfo in displayedHashes" 
+        v-for="hashInfo in visibleHashes" 
         :key="hashInfo.hash"
         class="hash-pill d-flex align-items-center"
         :style="{ backgroundColor: hashInfo.color, color: 'white' }"
@@ -24,6 +24,14 @@
           ×
         </button>
       </div>
+      <button 
+        v-if="displayedHashes.length > maxVisibleHashes"
+        @click="toggleExpanded"
+        class="btn btn-sm btn-outline-primary"
+        :title="isExpanded ? 'Show fewer hashes' : 'Show all hashes'"
+      >
+        {{ isExpanded ? 'Less' : `More (${displayedHashes.length - maxVisibleHashes})` }}
+      </button>
       <button 
         v-if="displayedHashes.length > 0"
         @click="clearAllFilters"
@@ -56,7 +64,9 @@ export default {
   emits: ['hash-removed', 'scroll-to-hash', 'clear-filters'],
   data() {
     return {
-      removedHashes: []
+      removedHashes: [],
+      isExpanded: false,
+      maxVisibleHashes: 5
     }
   },
   computed: {
@@ -67,6 +77,12 @@ export default {
       return this.rankedHashes.filter(hashInfo => 
         !this.removedHashes.includes(hashInfo.hash)
       )
+    },
+    visibleHashes() {
+      if (this.isExpanded || this.displayedHashes.length <= this.maxVisibleHashes) {
+        return this.displayedHashes
+      }
+      return this.displayedHashes.slice(0, this.maxVisibleHashes)
     }
   },
   watch: {
@@ -98,6 +114,9 @@ export default {
       // Clear removed hashes to show all hashes again
       this.removedHashes = []
       this.$emit('clear-filters')
+    },
+    toggleExpanded() {
+      this.isExpanded = !this.isExpanded
     }
   }
 }

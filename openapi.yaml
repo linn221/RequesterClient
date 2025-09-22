@@ -563,6 +563,47 @@ paths:
                 type: integer
                 example: 77
 
+# === Import Burp XML ===
+  /import_burp_xml:
+    post:
+      summary: Import Burp Suite XML file
+      description: Imports a Burp Suite XML file containing base64 encoded request and response data
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, program_id]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Burp Suite XML file to import
+                program_id:
+                  type: integer
+                  description: ID of the program to associate the import with
+                  example: 1
+                ignored_headers:
+                  type: string
+                  description: Headers to ignore during processing (JSON string)
+                  example: "[\"User-Agent\", \"Accept-Encoding\"]"
+      responses:
+        "201":
+          description: Import job created (returns job ID as plain text)
+          content:
+            text/plain:
+              schema:
+                type: integer
+                example: 78
+        "400":
+          description: Bad request
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "file is required"
+
 # === Jobs ===
   /jobs:
     get:
@@ -734,7 +775,7 @@ components:
       type: object
       properties:
         id: { type: integer }
-        job_type: { type: string, enum: [import_har, import_xml] }
+        job_type: { type: string, enum: [import_har, import_burp_xml] }
         title: { type: string }
         progress: { type: integer, minimum: 1, maximum: 100 }
         created_at: { type: string, format: date-time }

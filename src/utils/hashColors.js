@@ -65,10 +65,10 @@ export class HashColorManager {
     if (!hash) return ''
     
     const shortHash = hash.substring(0, 6)
-    const rank = this.hashRanks.get(hash)
+    const count = this.hashOccurrences.get(hash)
     
-    if (rank && rank > 1) {
-      return `${shortHash}|${rank}`
+    if (count && count > 1) {
+      return `${shortHash}|${count}`
     }
     
     return shortHash

@@ -29,6 +29,9 @@
             <li class="nav-item">
               <router-link class="nav-link" to="/import-har">Import HAR</router-link>
             </li>
+            <li class="nav-item">
+              <router-link class="nav-link" to="/import-burp-xml">Import Burp XML</router-link>
+            </li>
           </ul>
         </div>
       </div>

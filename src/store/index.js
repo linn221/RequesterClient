@@ -303,6 +303,27 @@ export default createStore({
       }
     },
 
+    // Burp XML Import
+    async importBurpXML({ dispatch }, file) {
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+        
+        const result = await dispatch('makeApiCall', {
+          endpoint: '/import_burp_xml',
+          options: {
+            method: 'POST',
+            headers: {}, // Remove Content-Type to let browser set it for FormData
+            body: formData
+          }
+        })
+        return result.data
+      } catch (error) {
+        console.error('Error importing Burp XML:', error)
+        throw error
+      }
+    },
+
     // Attachments
     async uploadAttachment({ dispatch }, { referenceType, referenceId, file }) {
       try {
