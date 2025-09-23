@@ -213,7 +213,7 @@ export default {
         await this.$store.dispatch('fetchJobs')
         // Filter for import jobs and get recent ones
         this.recentJobs = this.$store.getters.jobs
-          .filter(job => job.job_type === 'import_burp_xml')
+          .filter(job => job.job_type?.toLowerCase() === 'import_burp_xml')
           .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
       } catch (error) {
         console.error('Error loading recent jobs:', error)

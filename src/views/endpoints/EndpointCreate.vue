@@ -124,7 +124,8 @@ export default {
       try {
         const endpointData = {
           ...this.form,
-          program_id: parseInt(this.form.program_id)
+          program_id: parseInt(this.form.program_id),
+          endpoint_type: this.form.endpoint_type ? this.form.endpoint_type.toUpperCase() : ''
         }
         const endpointId = await this.$store.dispatch('createEndpoint', endpointData)
         this.$router.push(`/endpoints/${endpointId}`)

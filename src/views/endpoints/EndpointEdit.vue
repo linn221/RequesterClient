@@ -136,13 +136,14 @@ export default {
           endpoint: `/endpoints/${this.id}`
         })
         const endpoint = result.data
+        
         this.form = {
-          domain: endpoint.domain,
-          program_id: endpoint.program_id,
-          method: endpoint.method,
-          uri: endpoint.uri,
-          endpoint_type: String(endpoint.endpoint_type),
-          description: endpoint.description
+          domain: endpoint.domain || '',
+          program_id: endpoint.program_id || '',
+          method: endpoint.method || '',
+          uri: endpoint.uri || '',
+          endpoint_type: endpoint.endpoint_type ? endpoint.endpoint_type.toLowerCase() : '',
+          description: endpoint.description || ''
         }
       } catch (error) {
         console.error('Error loading endpoint:', error)
@@ -155,7 +156,8 @@ export default {
       try {
         const endpointData = {
           ...this.form,
-          program_id: parseInt(this.form.program_id)
+          program_id: parseInt(this.form.program_id),
+          endpoint_type: this.form.endpoint_type ? this.form.endpoint_type.toUpperCase() : ''
         }
         await this.$store.dispatch('updateEndpoint', {
           id: this.id,

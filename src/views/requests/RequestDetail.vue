@@ -415,7 +415,7 @@ export default {
       
       // Add request body
       if (this.request.request_body && this.request.method && 
-          this.request.method !== 'GET' && this.request.method !== 'HEAD') {
+          this.request.method.toUpperCase() !== 'GET' && this.request.method.toUpperCase() !== 'HEAD') {
         const body = this.request.request_body
         if (typeof body === 'string' && body.trim()) {
           // Escape quotes and newlines in the body
@@ -498,15 +498,15 @@ export default {
     },
     getMethodBadgeClass(method) {
       const classes = {
-        'GET': 'bg-success',
-        'POST': 'bg-primary',
-        'PUT': 'bg-warning',
-        'PATCH': 'bg-info',
-        'DELETE': 'bg-danger',
-        'HEAD': 'bg-secondary',
-        'OPTIONS': 'bg-dark'
+        'get': 'bg-success',
+        'post': 'bg-primary',
+        'put': 'bg-warning',
+        'patch': 'bg-info',
+        'delete': 'bg-danger',
+        'head': 'bg-secondary',
+        'options': 'bg-dark'
       }
-      return classes[method] || 'bg-secondary'
+      return classes[method?.toLowerCase()] || 'bg-secondary'
     },
     getStatusBadgeClass(statusCode) {
       if (statusCode >= 200 && statusCode < 300) return 'bg-success'

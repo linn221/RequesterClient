@@ -36,38 +36,35 @@
           </div>
 
           <div class="mb-3">
-            <label for="scope" class="form-label">Scope *</label>
+            <label for="scope" class="form-label">Scope</label>
             <input 
               type="text" 
               class="form-control" 
               id="scope" 
               v-model="form.scope" 
-              required
               placeholder="e.g., internal, external, public"
             >
           </div>
 
           <div class="mb-3">
-            <label for="domains" class="form-label">Domains *</label>
+            <label for="domains" class="form-label">Domains</label>
             <input 
               type="text" 
               class="form-control" 
               id="domains" 
               v-model="form.domains" 
-              required
               placeholder="example.com, api.example.com"
             >
             <div class="form-text">Comma-separated list of domains</div>
           </div>
 
           <div class="mb-3">
-            <label for="note" class="form-label">Note *</label>
+            <label for="note" class="form-label">Note</label>
             <textarea 
               class="form-control" 
               id="note" 
               v-model="form.note" 
               rows="3"
-              required
               placeholder="Enter note about this program"
             ></textarea>
           </div>

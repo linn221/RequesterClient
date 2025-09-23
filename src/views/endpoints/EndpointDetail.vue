@@ -30,7 +30,7 @@
             </div>
             <div class="col-md-6">
               <p><strong>Type:</strong> 
-                <span class="badge ms-2" :class="endpoint.endpoint_type === 'api' ? 'bg-info' : 'bg-secondary'">
+                <span class="badge ms-2" :class="endpoint.endpoint_type?.toLowerCase() === 'api' ? 'bg-info' : 'bg-secondary'">
                   {{ endpoint.endpoint_type }}
                 </span>
               </p>
@@ -296,15 +296,15 @@ export default {
     },
     getMethodBadgeClass(method) {
       const classes = {
-        'GET': 'bg-success',
-        'POST': 'bg-primary',
-        'PUT': 'bg-warning',
-        'PATCH': 'bg-info',
-        'DELETE': 'bg-danger',
-        'HEAD': 'bg-secondary',
-        'OPTIONS': 'bg-dark'
+        'get': 'bg-success',
+        'post': 'bg-primary',
+        'put': 'bg-warning',
+        'patch': 'bg-info',
+        'delete': 'bg-danger',
+        'head': 'bg-secondary',
+        'options': 'bg-dark'
       }
-      return classes[method] || 'bg-secondary'
+      return classes[method?.toLowerCase()] || 'bg-secondary'
     },
     async loadRelatedRequests() {
       try {

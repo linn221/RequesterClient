@@ -22,7 +22,7 @@ export const apiRequest = async (endpoint, options = {}) => {
     const contentType = response.headers.get('content-type')
     
     let data
-    if (contentType && contentType.includes('application/json')) {
+    if (contentType && contentType.toLowerCase().includes('application/json')) {
       try {
         data = await response.json()
       } catch (jsonError) {

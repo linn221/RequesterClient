@@ -1,22 +1,21 @@
 Makes Response Body modal's scroll bar bigger (currently, browser default scroll bar is overlapping. I want a simple big scroll bar that will scroll the Content of Response body)
-Returns Text field for Request Listing, Endpoint Listing, and so on.
 
 # Backend
-Create Tags, and automatically set System tags like 'js','css','html' on Request when importing.
+ContentType column of Request is just context-type header value of the request. i have seen empty string as content_type on listing requests response. Fix it.
 Add domain filter in request listing page, includeSubdomains=1
 Add url_contains=/api/RMSHandler, url_match=/api/RMSHandler
+Create Tags, and automatically set System tags like 'js','css','html' on Request when importing.
 
 
 # Bugs
 ## Frontend
 
 # Later Features
+*Image upload
+*Should be able to filter Notes by Selecting Program (multi select), Order By Date
 Add Tags Under Hashes in Request Listing page
 Encode/Decode base64
-Image upload
 Export current requests as PDF
-Should be able to filter Notes by Selecting Program (multi select), Order By Date
-Copy the Request as CURL
 
 # Ideas
 Analysing .css,.js,.html file line by line, and display the comments on new Comment section.

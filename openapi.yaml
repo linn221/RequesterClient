@@ -88,13 +88,19 @@ paths:
       summary: List notes
       description: Retrieve a list of notes, optionally filtered by type or search string
       parameters:
-        - name: type
+        - name: reference_type
           in: query
-          description: Filter notes by type
+          description: Filter notes by reference type
           schema:
             type: string
-            enum: [endpoint, request, program]
-            example: "endpoint"
+            enum: [endpoints, requests, programs]
+            example: "endpoints"
+        - name: reference_id
+          in: query
+          description: Filter notes by reference ID
+          schema:
+            type: integer
+            example: 123
         - name: search
           in: query
           description: Filter notes by search string in value
@@ -660,7 +666,7 @@ components:
 
     program_input:
       type: object
-      required: [name, url, scope, domains, note]
+      required: [name, url]
       properties:
         name: { type: string, example: "My Program" }
         url: { type: string, example: "https://example.com" }

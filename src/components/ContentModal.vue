@@ -375,40 +375,70 @@ pre {
   overflow: auto !important;
   -webkit-overflow-scrolling: touch;
   position: relative;
+  /* Firefox scrollbar styling - using primary color */
   scrollbar-width: thick;
-  scrollbar-color: #6c757d #e9ecef;
+  scrollbar-color: #0d6efd #e3f2fd;
+  /* Hide default scrollbar and use custom one */
+  scrollbar-gutter: stable;
 }
 
-/* Fix scrollbar positioning - make it bigger and more visible */
+/* Custom scrollbar for WebKit browsers (Chrome, Safari, Edge) */
 .flex-grow-1::-webkit-scrollbar {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
 }
 
 .flex-grow-1::-webkit-scrollbar-track {
-  background: #e9ecef;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
+  background: #e3f2fd;
+  border-radius: 10px;
+  border: 2px solid #bbdefb;
+  box-shadow: inset 0 0 2px rgba(13, 110, 253, 0.1);
 }
 
 .flex-grow-1::-webkit-scrollbar-thumb {
-  background: #6c757d;
-  border-radius: 8px;
-  border: 2px solid #e9ecef;
-  min-height: 40px;
+  background: linear-gradient(180deg, #0d6efd 0%, #0b5ed7 100%);
+  border-radius: 10px;
+  border: 2px solid #e3f2fd;
+  min-height: 50px;
+  box-shadow: 0 2px 4px rgba(13, 110, 253, 0.3);
+  transition: all 0.2s ease;
 }
 
 .flex-grow-1::-webkit-scrollbar-thumb:hover {
-  background: #495057;
-  border-color: #dee2e6;
+  background: linear-gradient(180deg, #0b5ed7 0%, #0a58ca 100%);
+  border-color: #bbdefb;
+  box-shadow: 0 4px 8px rgba(13, 110, 253, 0.4);
+  transform: scale(1.05);
 }
 
 .flex-grow-1::-webkit-scrollbar-thumb:active {
-  background: #343a40;
+  background: linear-gradient(180deg, #0a58ca 0%, #084298 100%);
+  box-shadow: 0 1px 2px rgba(13, 110, 253, 0.5);
+  transform: scale(0.95);
 }
 
 .flex-grow-1::-webkit-scrollbar-corner {
-  background: #e9ecef;
+  background: #e3f2fd;
+  border-radius: 10px;
+}
+
+/* Ensure the scrollbar is always visible and not overlapping */
+.flex-grow-1 {
+  padding-right: 4px; /* Add some padding to prevent content from being hidden behind scrollbar */
+  /* Force scrollbar to always be visible */
+  overflow-y: scroll !important;
+  overflow-x: auto !important;
+}
+
+/* Additional styles to ensure proper scrollbar behavior */
+.modal-body {
+  overflow: hidden; /* Prevent modal body from scrolling */
+}
+
+/* Make sure the content area takes full height and scrolls properly */
+.modal-body .d-flex.flex-column {
+  height: 70vh;
+  overflow: hidden;
 }
 
 mark {

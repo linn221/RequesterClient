@@ -13,7 +13,7 @@
                 <span class="badge" :class="getMethodBadgeClass(endpoint.method)">
                   {{ endpoint.method }}
                 </span>
-                <span class="badge" :class="endpoint.endpoint_type === 'api' ? 'bg-info' : 'bg-secondary'">
+                <span class="badge" :class="endpoint.endpoint_type?.toLowerCase() === 'api' ? 'bg-info' : 'bg-secondary'">
                   {{ endpoint.endpoint_type }}
                 </span>
               </div>
@@ -106,15 +106,15 @@ export default {
     formatDate,
     getMethodBadgeClass(method) {
       const classes = {
-        'GET': 'bg-success',
-        'POST': 'bg-primary',
-        'PUT': 'bg-warning',
-        'PATCH': 'bg-info',
-        'DELETE': 'bg-danger',
-        'HEAD': 'bg-secondary',
-        'OPTIONS': 'bg-dark'
+        'get': 'bg-success',
+        'post': 'bg-primary',
+        'put': 'bg-warning',
+        'patch': 'bg-info',
+        'delete': 'bg-danger',
+        'head': 'bg-secondary',
+        'options': 'bg-dark'
       }
-      return classes[method] || 'bg-secondary'
+      return classes[method?.toLowerCase()] || 'bg-secondary'
     },
     async deleteEndpoint(endpoint) {
       if (confirm(`Are you sure you want to delete "${endpoint.method} ${endpoint.uri}"?`)) {
